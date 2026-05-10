@@ -71,6 +71,11 @@ async function startServer() {
   });
   app.use('/api/', limiter);
 
+  // Health check (must be before generic /api/:table route)
+  app.get('/api/health', (req, res) => {
+    res.json({ status: 'ok', timestamp: new Date().toISOString() });
+  });
+
   // Generic CRUD Endpoints
   app.get('/api/:table', async (req, res) => {
     try {
@@ -113,11 +118,6 @@ async function startServer() {
     } catch (error) {
       res.status(500).json({ error: `Failed to save ${req.params.table}` });
     }
-  });
-
-  // Health check
-  app.get('/api/health', (req, res) => {
-    res.json({ status: 'ok', timestamp: new Date().toISOString() });
   });
 
   // Vite Integration

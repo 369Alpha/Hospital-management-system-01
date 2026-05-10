@@ -54,8 +54,3 @@ MediCore Central implements Row Level Security (RLS) and Tenant Isolation to ens
 # Hospital-management-system-01
 # Hospital-management-system-01
 # Hospital-management-system-01
-
-
-
-
-- hf

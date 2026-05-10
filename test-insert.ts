@@ -24,7 +24,8 @@ async function testInsert() {
       id: id,
       name: 'Test Dept',
       description: 'Test description',
-      tenantId: 'MediCore Central'
+      tenantId: 'MediCore Central',
+      createdBy: 'system'
     })
     .select();
     
