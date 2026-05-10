@@ -41,8 +41,6 @@ const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'
 
 type ReportTab = 'OVERVIEW' | 'CLINICAL' | 'FINANCIAL' | 'OPERATIONS';
 
-import { fetchWithFallback } from '../services/api';
-
 export const Reports = () => {
   const { user } = useAuthStore();
   const [activeTab, setActiveTab] = React.useState<ReportTab>('OVERVIEW');
@@ -51,7 +49,8 @@ export const Reports = () => {
   const { data: invoices = [] } = useQuery({
     queryKey: ['invoices-report', user?.tenantId],
     queryFn: async () => {
-      return fetchWithFallback<Invoice>('invoices', [], user?.tenantId);
+      // Mock data
+      return [] as Invoice[];
     },
     enabled: !!user?.tenantId
   });
@@ -59,7 +58,8 @@ export const Reports = () => {
   const { data: expenses = [] } = useQuery({
     queryKey: ['expenses-report', user?.tenantId],
     queryFn: async () => {
-      return fetchWithFallback<Expense>('expenses', [], user?.tenantId);
+      // Mock data
+      return [] as Expense[];
     },
     enabled: !!user?.tenantId
   });
@@ -67,7 +67,8 @@ export const Reports = () => {
   const { data: appointments = [] } = useQuery({
     queryKey: ['appointments-report', user?.tenantId],
     queryFn: async () => {
-      return fetchWithFallback<Appointment>('appointments', [], user?.tenantId);
+      // Mock data
+      return [] as Appointment[];
     },
     enabled: !!user?.tenantId
   });
@@ -75,7 +76,8 @@ export const Reports = () => {
   const { data: inventory = [] } = useQuery({
     queryKey: ['inventory-report', user?.tenantId],
     queryFn: async () => {
-      return fetchWithFallback<InventoryItem>('inventory', [], user?.tenantId);
+      // Mock data
+      return [] as InventoryItem[];
     },
     enabled: !!user?.tenantId
   });
@@ -83,7 +85,8 @@ export const Reports = () => {
   const { data: patients = [] } = useQuery({
     queryKey: ['patients-report', user?.tenantId],
     queryFn: async () => {
-      return fetchWithFallback<Patient>('patients', [], user?.tenantId);
+      // Mock data
+      return [] as Patient[];
     },
     enabled: !!user?.tenantId
   });
@@ -91,7 +94,8 @@ export const Reports = () => {
   const { data: prescriptions = [] } = useQuery({
     queryKey: ['prescriptions-report', user?.tenantId],
     queryFn: async () => {
-      return fetchWithFallback<Prescription>('prescriptions', [], user?.tenantId);
+      // Mock data
+      return [] as Prescription[];
     },
     enabled: !!user?.tenantId
   });

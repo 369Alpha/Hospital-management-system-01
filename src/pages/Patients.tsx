@@ -2,6 +2,7 @@ import React from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuthStore } from '../store/authStore';
 import { Patient, Diagnosis, Prescription, PrescriptionStatus, AdmissionStatus, Admission } from '../types';
+import { mockPatients, mockDiagnoses, mockPrescriptions, mockAdmissions } from '../services/dataStorage';
 import { Plus, Search, Filter, MoreVertical, FileText, UserCircle, Bed, Clipboard, Activity, Stethoscope, ChevronRight, X, Loader2, Trash2, Edit2, History } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { motion, AnimatePresence } from 'motion/react';
@@ -9,7 +10,6 @@ import { motion, AnimatePresence } from 'motion/react';
 import { PatientIntakeForm } from '../components/PatientIntakeForm';
 import { DiagnosisRecordForm } from '../components/DiagnosisRecordForm';
 import { PrescriptionForm } from '../components/PrescriptionForm';
-import { SuccessMessage } from '../components/SuccessMessage';
 
 import { fetchWithFallback, saveToDatabase } from '../services/api';
 
@@ -26,11 +26,6 @@ export const Patients = ({ onNavigate }: { onNavigate?: (tab: string) => void })
   // Context Menu State
   const [menuOpenId, setMenuOpenId] = React.useState<string | null>(null);
 
-  const [success, setSuccess] = React.useState<{ show: boolean; message: string }>({
-    show: false,
-    message: '',
-  });
-
   const addDiagnosisMutation = useMutation({
     mutationFn: async (values: any) => {
       if (!user?.tenantId || !selectedPatient) throw new Error('Context missing');
@@ -44,19 +39,14 @@ export const Patients = ({ onNavigate }: { onNavigate?: (tab: string) => void })
         notes: values.notes,
         severity: values.severity,
         tenantId: user.tenantId,
-        createdBy: user.uid,
         date: Date.now()
       };
       
-      return saveToDatabase('diagnoses', newDiagnosis);
+      return saveToDatabase('diagnoses', newDiagnosis, mockDiagnoses);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['patientDiagnoses', selectedPatient?.id] });
       setActiveClinicalTab('HISTORY');
-      setSuccess({
-        show: true,
-        message: 'Clinical diagnosis record updated and encrypted.'
-      });
     }
   });
 
@@ -74,20 +64,15 @@ export const Patients = ({ onNavigate }: { onNavigate?: (tab: string) => void })
         instructions: values.instructions,
         status: PrescriptionStatus.ACTIVE,
         tenantId: user.tenantId,
-        createdBy: user.uid,
         date: Date.now(),
         createdAt: Date.now()
       };
       
-      return saveToDatabase('prescriptions', newPrescription);
+      return saveToDatabase('prescriptions', newPrescription, mockPrescriptions);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['patientPrescriptions', selectedPatient?.id] });
       setActiveClinicalTab('HISTORY');
-      setSuccess({
-        show: true,
-        message: 'Pharmaceutical instruction issued successfully.'
-      });
     }
   });
 
@@ -108,19 +93,14 @@ export const Patients = ({ onNavigate }: { onNavigate?: (tab: string) => void })
         address: values.address,
         medicalHistory: values.medicalHistory ? values.medicalHistory.split(',').map((s: string) => s.trim()) : [],
         tenantId: user.tenantId,
-        createdBy: user.uid,
         createdAt: Date.now()
       };
       
-      return saveToDatabase('patients', newPatient);
+      return saveToDatabase('patients', newPatient, mockPatients);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['patients'] });
       setIsAddModalOpen(false);
-      setSuccess({
-        show: true,
-        message: 'Patient registration completed and verified.'
-      });
     }
   });
 
@@ -129,7 +109,7 @@ export const Patients = ({ onNavigate }: { onNavigate?: (tab: string) => void })
     queryFn: async () => {
       if (!user?.tenantId) return [];
       
-      return fetchWithFallback<Patient>('patients', [], user.tenantId, (q) => {
+      return fetchWithFallback('patients', mockPatients, user.tenantId, (q) => {
         if (user.role === 'PATIENT') return q.eq('userId', user.uid);
         return q;
       });
@@ -190,11 +170,10 @@ export const Patients = ({ onNavigate }: { onNavigate?: (tab: string) => void })
         doctorInChargeId: user.uid,
         doctorInChargeName: user.name,
         tenantId: user.tenantId,
-        createdBy: user.uid,
         observations: []
       };
       
-      return saveToDatabase('admissions', newAdmission);
+      return saveToDatabase('admissions', newAdmission, mockAdmissions);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admissions'] });
@@ -549,12 +528,6 @@ export const Patients = ({ onNavigate }: { onNavigate?: (tab: string) => void })
           </div>
         )}
       </AnimatePresence>
-
-      <SuccessMessage 
-        show={success.show}
-        message={success.message}
-        onClose={() => setSuccess({ ...success, show: false })}
-      />
     </div>
   );
 };
@@ -563,7 +536,7 @@ const PatientClinicalHistory = ({ patientId, tenantId }: { patientId: string; te
   const { data: diagnoses, isLoading: diagnosesLoading } = useQuery({
     queryKey: ['patientDiagnoses', patientId],
     queryFn: async () => {
-      return fetchWithFallback<Diagnosis>('diagnoses', [], tenantId, (q) => q.eq('patientId', patientId));
+      return fetchWithFallback('diagnoses', mockDiagnoses, tenantId, (q) => q.eq('patientId', patientId));
     },
     enabled: !!tenantId && !!patientId
   });
@@ -571,7 +544,7 @@ const PatientClinicalHistory = ({ patientId, tenantId }: { patientId: string; te
   const { data: prescriptions, isLoading: prescriptionsLoading } = useQuery({
     queryKey: ['patientPrescriptions', patientId],
     queryFn: async () => {
-      return fetchWithFallback<Prescription>('prescriptions', [], tenantId, (q) => q.eq('patientId', patientId));
+      return fetchWithFallback('prescriptions', mockPrescriptions, tenantId, (q) => q.eq('patientId', patientId));
     },
     enabled: !!tenantId && !!patientId
   });

@@ -5,6 +5,7 @@ import { Attendance } from '../types';
 import { cn } from '../lib/utils';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { fetchWithFallback, saveToDatabase } from '../services/api';
+import { mockAttendance } from '../services/dataStorage';
 
 export const AttendancePage = () => {
   const { user } = useAuthStore();
@@ -17,7 +18,7 @@ export const AttendancePage = () => {
   const { data: attendance = [], isLoading } = useQuery({
     queryKey: ['attendance', user?.tenantId],
     queryFn: async () => {
-      return fetchWithFallback<Attendance>('attendance', [], user?.tenantId);
+      return fetchWithFallback('attendance', mockAttendance, user?.tenantId);
     },
     enabled: !!user?.tenantId
   });
@@ -31,6 +32,7 @@ export const AttendancePage = () => {
       const now = new Date();
       const checkInTime = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true });
       
+      // Determine if late (e.g., after 9:00 AM)
       const hours = now.getHours();
       const status = hours >= 9 && now.getMinutes() > 0 ? 'LATE' : 'PRESENT';
 
@@ -44,7 +46,7 @@ export const AttendancePage = () => {
         tenantId: user.tenantId
       };
 
-      return saveToDatabase('attendance', newRecord);
+      return saveToDatabase('attendance', newRecord, mockAttendance);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['attendance'] });
@@ -59,7 +61,7 @@ export const AttendancePage = () => {
       const checkOutTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true });
       const updatedRecord = { ...record, checkOut: checkOutTime };
       
-      return saveToDatabase('attendance', updatedRecord);
+      return saveToDatabase('attendance', updatedRecord, mockAttendance);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['attendance'] });

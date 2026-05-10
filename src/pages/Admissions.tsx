@@ -18,6 +18,7 @@ import { format } from 'date-fns';
 import { motion, AnimatePresence } from 'motion/react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { fetchWithFallback, saveToDatabase } from '../services/api';
+import { mockAdmissions } from '../services/dataStorage';
 
 export const Admissions = ({ onNavigate }: { onNavigate?: (tab: string) => void }) => {
   const { user } = useAuthStore();
@@ -46,7 +47,7 @@ export const Admissions = ({ onNavigate }: { onNavigate?: (tab: string) => void 
     queryKey: ['admissions', user?.tenantId],
     queryFn: async () => {
       if (!user?.tenantId) return [];
-      return fetchWithFallback<Admission>('admissions', [], user.tenantId);
+      return fetchWithFallback('admissions', mockAdmissions, user.tenantId);
     },
     enabled: !!user?.tenantId
   });
@@ -54,7 +55,7 @@ export const Admissions = ({ onNavigate }: { onNavigate?: (tab: string) => void 
   const { data: patients = [] } = useQuery({
     queryKey: ['patients', user?.tenantId],
     queryFn: async () => {
-      return fetchWithFallback<Patient>('patients', [], user?.tenantId);
+      return fetchWithFallback('patients', [], user?.tenantId);
     },
     enabled: !!user?.tenantId
   });
@@ -69,7 +70,7 @@ export const Admissions = ({ onNavigate }: { onNavigate?: (tab: string) => void 
         admittedAt: Date.now()
       };
       
-      return saveToDatabase('admissions', admission);
+      return saveToDatabase('admissions', admission, mockAdmissions);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admissions'] });
@@ -93,7 +94,7 @@ export const Admissions = ({ onNavigate }: { onNavigate?: (tab: string) => void 
           ...record, 
           observations: [...(record.observations || []), observation] 
         };
-        return saveToDatabase('admissions', updatedAdmission);
+        return saveToDatabase('admissions', updatedAdmission, mockAdmissions);
       }
     },
     onSuccess: () => {
@@ -111,7 +112,7 @@ export const Admissions = ({ onNavigate }: { onNavigate?: (tab: string) => void 
           status: AdmissionStatus.DISCHARGED,
           dischargedAt: Date.now()
         };
-        return saveToDatabase('admissions', updatedAdmission);
+        return saveToDatabase('admissions', updatedAdmission, mockAdmissions);
       }
     },
     onSuccess: () => {
@@ -390,7 +391,6 @@ export const Admissions = ({ onNavigate }: { onNavigate?: (tab: string) => void 
                     doctorInChargeId: user?.uid || '',
                     doctorInChargeName: user?.name || '',
                     tenantId: user?.tenantId || '',
-                    createdBy: user?.uid || '',
                     observations: []
                   });
                 }} 

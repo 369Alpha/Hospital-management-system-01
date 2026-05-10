@@ -1,12 +1,12 @@
 import React from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuthStore } from '../store/authStore';
-import { Doctor, DoctorAvailability, Department } from '../types';
+import { Doctor, DoctorAvailability } from '../types';
+import { mockDoctors, mockDepartments } from '../services/dataStorage';
 import { Stethoscope, Plus, Search, Filter, MoreVertical, Star, X, Calendar, Clock, DollarSign, Award, AtSign, Loader2, UserCircle } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { motion, AnimatePresence } from 'motion/react';
 import { useForm } from 'react-hook-form';
-import { SuccessMessage } from '../components/SuccessMessage';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { saveToDatabase, fetchWithFallback } from '../services/api';
@@ -32,25 +32,12 @@ export const Doctors = () => {
   const [selectedSpecialization, setSelectedSpecialization] = React.useState('All');
   const [isOnboardModalOpen, setIsOnboardModalOpen] = React.useState(false);
   const [selectedAvailabilityDoc, setSelectedAvailabilityDoc] = React.useState<Doctor | null>(null);
-  const [success, setSuccess] = React.useState<{ show: boolean; message: string }>({
-    show: false,
-    message: '',
-  });
 
   const { data: doctors, isLoading } = useQuery({
     queryKey: ['doctors', user?.tenantId],
     queryFn: async () => {
       if (!user?.tenantId) return [];
-      return fetchWithFallback<Doctor>('doctors', [], user.tenantId);
-    },
-    enabled: !!user?.tenantId
-  });
-
-  const { data: departments = [] } = useQuery({
-    queryKey: ['departments', user?.tenantId],
-    queryFn: async () => {
-      if (!user?.tenantId) return [];
-      return fetchWithFallback<Department>('departments', [], user.tenantId);
+      return fetchWithFallback('doctors', mockDoctors, user.tenantId);
     },
     enabled: !!user?.tenantId
   });
@@ -78,20 +65,17 @@ export const Doctors = () => {
           { day: 'thursday', slots: [{ start: '09:00', end: '17:00' }] },
           { day: 'friday', slots: [{ start: '09:00', end: '17:00' }] }
         ],
-        tenantId: user.tenantId,
-        createdBy: user.uid
+        tenantId: user.tenantId
       };
       
-      return await saveToDatabase('doctors', newDoctor);
+      await saveToDatabase('doctors', newDoctor);
+      mockDoctors.unshift(newDoctor);
+      return newDoctor;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['doctors'] });
       setIsOnboardModalOpen(false);
       reset();
-      setSuccess({
-        show: true,
-        message: 'Medical professional successfully registered and synchronized.'
-      });
     }
   });
 
@@ -103,8 +87,8 @@ export const Doctors = () => {
   const [menuOpenId, setMenuOpenId] = React.useState<string | null>(null);
 
   const specializations = React.useMemo(() => {
-    return ['All', ...departments.map(d => d.name)];
-  }, [departments]);
+    return ['All', ...mockDepartments.map(d => d.name)];
+  }, []);
 
   const filteredDoctors = React.useMemo(() => {
     if (!doctors) return [];
@@ -336,7 +320,7 @@ export const Doctors = () => {
                       className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs outline-none focus:ring-2 focus:ring-blue-500/20 font-bold"
                     >
                       <option value="">Select Dept</option>
-                      {departments.map(dept => (
+                      {mockDepartments.map(dept => (
                         <option key={dept.id} value={dept.id}>{dept.name}</option>
                       ))}
                     </select>
@@ -448,12 +432,6 @@ export const Doctors = () => {
           </div>
         )}
       </AnimatePresence>
-
-      <SuccessMessage 
-        show={success.show}
-        message={success.message}
-        onClose={() => setSuccess({ ...success, show: false })}
-      />
     </div>
   );
 };
