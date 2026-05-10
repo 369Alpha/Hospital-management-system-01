@@ -390,6 +390,7 @@ export const Admissions = ({ onNavigate }: { onNavigate?: (tab: string) => void 
                     doctorInChargeId: user?.uid || '',
                     doctorInChargeName: user?.name || '',
                     tenantId: user?.tenantId || '',
+                    createdBy: user?.uid || '',
                     observations: []
                   });
                 }} 

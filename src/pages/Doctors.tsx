@@ -6,6 +6,7 @@ import { Stethoscope, Plus, Search, Filter, MoreVertical, Star, X, Calendar, Clo
 import { cn } from '../lib/utils';
 import { motion, AnimatePresence } from 'motion/react';
 import { useForm } from 'react-hook-form';
+import { SuccessMessage } from '../components/SuccessMessage';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { saveToDatabase, fetchWithFallback } from '../services/api';
@@ -31,6 +32,10 @@ export const Doctors = () => {
   const [selectedSpecialization, setSelectedSpecialization] = React.useState('All');
   const [isOnboardModalOpen, setIsOnboardModalOpen] = React.useState(false);
   const [selectedAvailabilityDoc, setSelectedAvailabilityDoc] = React.useState<Doctor | null>(null);
+  const [success, setSuccess] = React.useState<{ show: boolean; message: string }>({
+    show: false,
+    message: '',
+  });
 
   const { data: doctors, isLoading } = useQuery({
     queryKey: ['doctors', user?.tenantId],
@@ -73,7 +78,8 @@ export const Doctors = () => {
           { day: 'thursday', slots: [{ start: '09:00', end: '17:00' }] },
           { day: 'friday', slots: [{ start: '09:00', end: '17:00' }] }
         ],
-        tenantId: user.tenantId
+        tenantId: user.tenantId,
+        createdBy: user.uid
       };
       
       return await saveToDatabase('doctors', newDoctor);
@@ -82,6 +88,10 @@ export const Doctors = () => {
       queryClient.invalidateQueries({ queryKey: ['doctors'] });
       setIsOnboardModalOpen(false);
       reset();
+      setSuccess({
+        show: true,
+        message: 'Medical professional successfully registered and synchronized.'
+      });
     }
   });
 
@@ -438,6 +448,12 @@ export const Doctors = () => {
           </div>
         )}
       </AnimatePresence>
+
+      <SuccessMessage 
+        show={success.show}
+        message={success.message}
+        onClose={() => setSuccess({ ...success, show: false })}
+      />
     </div>
   );
 };

@@ -44,7 +44,8 @@ export const Inventory = () => {
       const newItem: InventoryItem = {
         id: `i-${Date.now()}`,
         ...values,
-        tenantId: user.tenantId
+        tenantId: user.tenantId,
+        createdBy: user.uid
       };
       
       return saveToDatabase('inventory', newItem);

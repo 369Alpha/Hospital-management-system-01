@@ -8,7 +8,8 @@ import { useAuthStore } from '../store/authStore';
 import { cn } from '../lib/utils';
 import { fetchWithFallback, saveToDatabase, deleteFromDatabase } from '../services/api';
 import { Department } from '../types';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'motion/react';
+import { SuccessMessage } from '../components/SuccessMessage';
 
 const iconMap = {
   'Cardiology': HeartPulse,
@@ -37,6 +38,11 @@ export const Departments = () => {
   const [formData, setFormData] = React.useState({
     name: '',
     description: '',
+  });
+
+  const [success, setSuccess] = React.useState<{ show: boolean; message: string }>({
+    show: false,
+    message: '',
   });
 
   const loadDepartments = React.useCallback(async () => {
@@ -80,11 +86,16 @@ export const Departments = () => {
         name: formData.name,
         description: formData.description,
         tenantId: user.tenantId,
+        createdBy: user.uid,
       };
 
       await saveToDatabase('departments', newDept);
       await loadDepartments();
       handleCloseModal();
+      setSuccess({
+        show: true,
+        message: editingDept ? 'Operational node updated successfully.' : 'New clinical unit initialized and synced.',
+      });
     } catch (err: unknown) {
       console.error('Save failed:', err);
       const errorMessage = err instanceof Error ? err.message : 'Failed to initialize unit. Check database connection and policies.';
@@ -312,6 +323,12 @@ export const Departments = () => {
           </div>
         )}
       </AnimatePresence>
+
+      <SuccessMessage 
+        show={success.show}
+        message={success.message}
+        onClose={() => setSuccess({ ...success, show: false })}
+      />
     </div>
   );
 };

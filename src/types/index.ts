@@ -50,6 +50,7 @@ export interface Department {
   name: string;
   description: string;
   tenantId: string;
+  createdBy: string;
 }
 
 export interface Doctor {
@@ -67,6 +68,7 @@ export interface Doctor {
   tags?: string[];
   availability: DoctorAvailability[];
   tenantId: string;
+  createdBy: string;
 }
 
 export interface DoctorAvailability {
@@ -87,6 +89,7 @@ export interface Patient {
   address: string;
   medicalHistory: string[];
   tenantId: string;
+  createdBy: string;
   createdAt: number;
 }
 
@@ -129,6 +132,7 @@ export interface Prescription {
   instructions: string;
   status: PrescriptionStatus;
   tenantId: string;
+  createdBy: string;
 }
 
 export interface Medication {
@@ -245,6 +249,7 @@ export interface Admission {
   doctorInChargeId: string;
   doctorInChargeName: string;
   tenantId: string;
+  createdBy: string;
   observations?: ClinicalObservation[];
 }
 
@@ -266,6 +271,7 @@ export interface Diagnosis {
   severity: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
   date: number;
   tenantId: string;
+  createdBy: string;
 }
 
 export interface Payment {
@@ -299,6 +305,7 @@ export interface InventoryItem {
   minStock: number;
   expiryDate?: number;
   tenantId: string;
+  createdBy: string;
 }
 
 export interface LabTest {

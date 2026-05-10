@@ -9,6 +9,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { PatientIntakeForm } from '../components/PatientIntakeForm';
 import { DiagnosisRecordForm } from '../components/DiagnosisRecordForm';
 import { PrescriptionForm } from '../components/PrescriptionForm';
+import { SuccessMessage } from '../components/SuccessMessage';
 
 import { fetchWithFallback, saveToDatabase } from '../services/api';
 
@@ -25,6 +26,11 @@ export const Patients = ({ onNavigate }: { onNavigate?: (tab: string) => void })
   // Context Menu State
   const [menuOpenId, setMenuOpenId] = React.useState<string | null>(null);
 
+  const [success, setSuccess] = React.useState<{ show: boolean; message: string }>({
+    show: false,
+    message: '',
+  });
+
   const addDiagnosisMutation = useMutation({
     mutationFn: async (values: any) => {
       if (!user?.tenantId || !selectedPatient) throw new Error('Context missing');
@@ -38,6 +44,7 @@ export const Patients = ({ onNavigate }: { onNavigate?: (tab: string) => void })
         notes: values.notes,
         severity: values.severity,
         tenantId: user.tenantId,
+        createdBy: user.uid,
         date: Date.now()
       };
       
@@ -46,6 +53,10 @@ export const Patients = ({ onNavigate }: { onNavigate?: (tab: string) => void })
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['patientDiagnoses', selectedPatient?.id] });
       setActiveClinicalTab('HISTORY');
+      setSuccess({
+        show: true,
+        message: 'Clinical diagnosis record updated and encrypted.'
+      });
     }
   });
 
@@ -63,6 +74,7 @@ export const Patients = ({ onNavigate }: { onNavigate?: (tab: string) => void })
         instructions: values.instructions,
         status: PrescriptionStatus.ACTIVE,
         tenantId: user.tenantId,
+        createdBy: user.uid,
         date: Date.now(),
         createdAt: Date.now()
       };
@@ -72,6 +84,10 @@ export const Patients = ({ onNavigate }: { onNavigate?: (tab: string) => void })
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['patientPrescriptions', selectedPatient?.id] });
       setActiveClinicalTab('HISTORY');
+      setSuccess({
+        show: true,
+        message: 'Pharmaceutical instruction issued successfully.'
+      });
     }
   });
 
@@ -92,6 +108,7 @@ export const Patients = ({ onNavigate }: { onNavigate?: (tab: string) => void })
         address: values.address,
         medicalHistory: values.medicalHistory ? values.medicalHistory.split(',').map((s: string) => s.trim()) : [],
         tenantId: user.tenantId,
+        createdBy: user.uid,
         createdAt: Date.now()
       };
       
@@ -100,6 +117,10 @@ export const Patients = ({ onNavigate }: { onNavigate?: (tab: string) => void })
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['patients'] });
       setIsAddModalOpen(false);
+      setSuccess({
+        show: true,
+        message: 'Patient registration completed and verified.'
+      });
     }
   });
 
@@ -169,6 +190,7 @@ export const Patients = ({ onNavigate }: { onNavigate?: (tab: string) => void })
         doctorInChargeId: user.uid,
         doctorInChargeName: user.name,
         tenantId: user.tenantId,
+        createdBy: user.uid,
         observations: []
       };
       
@@ -527,6 +549,12 @@ export const Patients = ({ onNavigate }: { onNavigate?: (tab: string) => void })
           </div>
         )}
       </AnimatePresence>
+
+      <SuccessMessage 
+        show={success.show}
+        message={success.message}
+        onClose={() => setSuccess({ ...success, show: false })}
+      />
     </div>
   );
 };
